@@ -1,0 +1,9 @@
+name: grey_matter
+version: 0.0.1
+
+authors:
+  - Dave <dave.schwantes@gmail.com>
+
+crystal: 0.21.1
+
+license: MIT
