@@ -1,6 +1,7 @@
 class GreyMatter::Node
 
-  def initialize
+  property value
 
+  def initialize(@value : Float64 = 0.0)
   end
 end
