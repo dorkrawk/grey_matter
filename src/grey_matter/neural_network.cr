@@ -27,12 +27,29 @@ class GreyMatter::NeuralNetwork
     margin_of_error = node_actual_output - node_calculated_output
     output_sum = calculate_input_influence(output_node)
     delta_output_sum = Math.sigmoid_function_prime(output_sum) * margin_of_error
-    delta_weights = input_edges(output_node).map { |e| e.input.value * delta_output_sum }
+    delta_weights_ouput = input_edges(output_node).map { |e| e.input.value * delta_output_sum }
     # last hidden layer -> 2nd to last hidden layer or input
-    # delta_hidden_sum = input_edges(output_node).map { |e| e.weight * delta_output_sum }.zip(@hidden_layers.last.map { |n| calculate_input_influence(value) }).map { |a, b| a * Math.sigmoid_function_prime(b) }
+    delta_output_sum_x_hidden_to_outer_weights = input_edges(output_node).map { |e| e.weight * delta_output_sum }
+    sigma_prime_hidden_sum = @hidden_layers.last.map { |n| n.input_influence }
+    delta_hidden_sum = Math.matrix_mul(delta_output_sum_x_hidden_to_outer_weights, sigma_prime_hidden_sum)
+    input_values = @input_layer.map { |n| n.value }
+    delta_weights_hidden_first = Math.matrix_scalar(delta_hidden_sum, input_values.first)
     # need to continue here...
 
+    # --------------
 
+  end
+
+  def back_propigate(input, output, result_nodes)
+    # refer to http://stevenmiller888.github.io/mind-how-to-build-a-neural-network-part-2/
+    error_output_layer = Math.matrix_sub(output, result_nodes[output_layer_index].map(&:value) )
+    delta_output_layer = Math.matrix_mul(result_nodes[output_layer_index].map(&:input_influence), error_output_layer)
+    output_layer_input_change = Math.matrix_scalar(Math.matrix_mul(delta_output_layer, hidden_layers.last.map(&:value)), learning_rate)
+
+    layer_index = output_layer_index
+    while layer_index > input_layer_index do
+
+    end
   end
 
   def train_from_set(input_set, output_set)
@@ -67,6 +84,7 @@ class GreyMatter::NeuralNetwork
   def forward_propigate(layer : Array(Node))
     layer.each do |node|
       input_influence = calculate_input_influence(node)
+      node.input_influence = input_influence
       node.value = activation_function(input_influence)
     end
   end
@@ -121,5 +139,9 @@ class GreyMatter::NeuralNetwork
 
   def activation_function_prime(value)
     Math.sigmoid_function_prime(value)
+  end
+
+  def learning_rate
+    0.7 # why? i don't know
   end
 end
